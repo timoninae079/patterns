@@ -1,3 +1,4 @@
+import com.github.javafaker.CreditCardType;
 import com.github.javafaker.Faker;
 import lombok.Value;
 import lombok.val;
@@ -9,7 +10,24 @@ import java.util.Random;
 
 public class DataGenerator {
     private DataGenerator() {
+
     }
+
+    public static class Registration {
+        private Registration() {
+
+            public static RegistrationByCardInfo generateByCard (String locale){
+                Faker faker = new Faker(new Locale(locale));
+                return new RegistrationByCardInfo(
+                        faker.name().fullName(),
+                        faker.finance().creditCard(CreditCardType.MASTERCARD),
+                        LocalDate.now().plusYears(1)
+                );
+            }
+        }
+    }
+
+
 
     public static String generateDate(int shift) {
         // TODO: добавить логику для объявления переменной date и задания её значения, для генерации строки с датой
