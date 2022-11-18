@@ -20,6 +20,7 @@ dependencies {
     testImplementation 'com.github.javafaker:javafaker:1.0.2'
 }
 
+
 test {
     useJUnitPlatform()
     systemProperty 'selenide.headless', System.getProperty('selenide.headless')

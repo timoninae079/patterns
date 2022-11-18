@@ -1,28 +1,38 @@
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
+import com.codeborne.selenide.SelenideElement;
+import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.open;
+import org.openqa.selenium.Keys;
+import static com.codeborne.selenide.Condition.*;
 
+@SuppressWarnings("ALL")
+class AppCardDeliveryTest {
+    private SelenideElement form;
+    private final String city = DataGenerator.getRandomCity();
+    private final String cityInvalid = DataGenerator.getRandomCityInvalid();
+    private final String date = DataGenerator.getDate(3);
+    private final String dateReplan = DataGenerator.getDate(10);
+    private final String dateInvalid = DataGenerator.getDate(1);
+    private final String name = DataGenerator.getFakerName();
+    private final String phone = DataGenerator.getFakerPhone();
 
-public class DeliveryTest {
     @BeforeEach
-    void setup() {
+    void setUpAll() {
         open("http://localhost:9999");
+        form = $("[action='/']");
+        form.$("[data-test-id=date] input").doubleClick().sendKeys(Keys.BACK_SPACE);
     }
 
     @Test
-    @DisplayName("Should successful plan and replan meeting")
-    void shouldSuccessfulPlanAndReplanMeeting() {
-        var validUser = DataGenerator.Registration.generateUser("ru");
-        var daysToAddForFirstMeeting = 4;
-        var firstMeetingDate = DataGenerator.generateDate(daysToAddForFirstMeeting);
-        var daysToAddForSecondMeeting = 7;
-        var secondMeetingDate = DataGenerator.generateDate(daysToAddForSecondMeeting);
-        // TODO: добавить логику теста в рамках которого будет выполнено планирование и перепланирование встречи.
-        // Для заполнения полей формы можно использовать пользователя validUser и строки с датами в переменных
-        // firstMeetingDate и secondMeetingDate. Можно также вызывать методы generateCity(locale),
-        // generateName(locale), generatePhone(locale) для генерации и получения в тесте соответственно города,
-        // имени и номера телефона без создания пользователя в методе generateUser(String locale) в датагенераторе
+    void testPositiveAllInputFirstPlan() {
+        form.$("[data-test-id='city'] input").setValue(city);
+        form.$("[data-test-id='date'] input").setValue(date);
+        form.$("[data-test-id='name'] input").setValue(name);
+        form.$("[data-test-id='phone'] input").setValue(phone);
+        form.$("[data-test-id='agreement']").click();
+        form.$(".button__content").click();
+        $("[data-test-id='success-notification']").waitUntil(visible, 15000).shouldHave(text(date));
     }
+
 }
