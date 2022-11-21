@@ -1,38 +1,45 @@
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import com.codeborne.selenide.SelenideElement;
-import static com.codeborne.selenide.Selenide.$;
-import static com.codeborne.selenide.Selenide.open;
 import org.openqa.selenium.Keys;
-import static com.codeborne.selenide.Condition.*;
 
-@SuppressWarnings("ALL")
-class AppCardDeliveryTest {
-    private SelenideElement form;
-    private final String city = DataGenerator.getRandomCity();
-    private final String cityInvalid = DataGenerator.getRandomCityInvalid();
-    private final String date = DataGenerator.getDate(3);
-    private final String dateReplan = DataGenerator.getDate(10);
-    private final String dateInvalid = DataGenerator.getDate(1);
-    private final String name = DataGenerator.getFakerName();
-    private final String phone = DataGenerator.getFakerPhone();
+import java.time.Duration;
+
+import static com.codeborne.selenide.Condition.exactText;
+import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Selectors.byText;
+import static com.codeborne.selenide.Selenide.*;
+
+class DeliveryTest {
 
     @BeforeEach
-    void setUpAll() {
+    void setup() {
         open("http://localhost:9999");
-        form = $("[action='/']");
-        form.$("[data-test-id=date] input").doubleClick().sendKeys(Keys.BACK_SPACE);
     }
+
 
     @Test
-    void testPositiveAllInputFirstPlan() {
-        form.$("[data-test-id='city'] input").setValue(city);
-        form.$("[data-test-id='date'] input").setValue(date);
-        form.$("[data-test-id='name'] input").setValue(name);
-        form.$("[data-test-id='phone'] input").setValue(phone);
-        form.$("[data-test-id='agreement']").click();
-        form.$(".button__content").click();
-        $("[data-test-id='success-notification']").waitUntil(visible, 15000).shouldHave(text(date));
+    @DisplayName("Should successful plan and replan meeting")
+    void shouldSuccessfulPlanAndReplanMeeting() {
+        final DataGenerator.UserInfo validUser = DataGenerator.Registration.generateUser("ru");
+        final int daysToAddForFirstMeeting = 4;
+        final String firstMeetingDate = DataGenerator.generateDate(daysToAddForFirstMeeting);
+        final int daysToAddForSecondMeeting = 7;
+        final String secondMeetingDate = DataGenerator.generateDate(daysToAddForSecondMeeting);
+        $("[placeholder=\"Город\"]").setValue(validUser.getCity());
+        $("input[placeholder=\"Дата встречи\"]").sendKeys(Keys.chord(Keys.SHIFT, Keys.HOME), Keys.BACK_SPACE);
+        $("input[placeholder=\"Дата встречи\"]").setValue(firstMeetingDate);
+        $("[data-test-id=\"name\"] input").setValue(validUser.getName());
+        $("[data-test-id='phone'] input").setValue(validUser.getPhone());
+        $("[data-test-id=\"agreement\"]").click();
+        $(byText("Запланировать")).click();
+        $(byText("Успешно!")).should(visible, Duration.ofSeconds(15));
+        $("[data-test-id=\"success-notification\"] .notification__content").shouldHave(exactText("Встреча успешно запланирована на " + firstMeetingDate));
+        $("input[placeholder=\"Дата встречи\"]").sendKeys(Keys.chord(Keys.SHIFT, Keys.HOME), Keys.BACK_SPACE);
+        $("input[placeholder=\"Дата встречи\"]").setValue(secondMeetingDate);
+        $(byText("Запланировать")).click();
+        $(byText("У вас уже запланирована встреча на другую дату. Перепланировать?")).should(visible, Duration.ofSeconds(15));
+        $x("//span[text()='Перепланировать']").click();
+        $("[data-test-id=\"success-notification\"] .notification__content").shouldHave(exactText("Встреча успешно запланирована на " + secondMeetingDate));
     }
-
 }
